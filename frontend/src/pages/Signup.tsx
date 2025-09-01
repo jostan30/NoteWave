@@ -82,12 +82,35 @@ export default function SignupPage() {
         }
     };
 
-    const handleSignUp = () => {
-        if (validateForm()) {
-            console.log('Signing up with:', formData);
-            // Handle final signup logic here
-        }
-    };
+ const handleSignUp = async () => {
+  if (validateForm()) {
+    console.log("Signing up with:", formData);
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/request-otp-up", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message); // e.g., "OTP sent to johndoe@example.com"
+        // Show OTP input field
+        setShowOTPField(true);
+      } else {
+        alert(data.message || "Signup failed");
+      }
+    } catch (error) {
+      console.error("Error during signup:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  }
+};
+
 
     const toggleShowOTP = () => {
         setShowOTP(!showOTP);

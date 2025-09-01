@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
 import { sendOTP, verifyOTP } from "../utils/otp";
 import User from "../models/User";
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+
+
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
 // Signup/Login: send OTP
 export const requestOtpSignIn = async (req: Request, res: Response) => {
@@ -52,9 +57,22 @@ export const verifyOtpController = async (req: Request, res: Response) => {
     const { email, otp } = req.body;
     const user = await verifyOTP(email, otp);
 
+    const salt = crypto.randomBytes(16).toString("hex");
+
+    // JWT payload
+    const payload = {
+      name: user.name,
+      email: user.email,
+      dob: user.dob,
+      salt, // 🔐 unique per token
+    };
+
+    // Sign JWT with expiry
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+
     res.status(200).json({
       message: "OTP verified successfully",
-      user,
+      token,
     });
   } catch (error: any) {
     res.status(400).json({
