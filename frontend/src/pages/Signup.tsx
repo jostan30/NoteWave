@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 export default function SignupPage() {
     const [formData, setFormData] = useState({
         name: '',
-        dateOfBirth: '',
+        dob: '',
         email: '',
         otp: ''
     });
@@ -31,34 +31,34 @@ export default function SignupPage() {
         }
     };
 
-    const validateForm = () => {
-        let newErrors: Record<string, string> = {};
+    // const validateForm = () => {
+    //     let newErrors: Record<string, string> = {};
 
-        // Name: at least 2 characters
-        if (formData.name.trim().length < 2) {
-            newErrors.name = "Name must be at least 2 characters.";
-        }
+    //     // Name: at least 2 characters
+    //     if (formData.name.trim().length < 2) {
+    //         newErrors.name = "Name must be at least 2 characters.";
+    //     }
 
-        // DOB: must be a valid date
-        if (!formData.dateOfBirth) {
-            newErrors.dateOfBirth = "Date of birth is required.";
-        }
+    //     // DOB: must be a valid date
+    //     if (!formData.dateOfBirth) {
+    //         newErrors.dateOfBirth = "Date of birth is required.";
+    //     }
 
-        // Email: basic email format check
-        if (!formData.email || !formData.email.includes('@')) {
-            newErrors.email = "Please enter a valid email address.";
-        }
+    //     // Email: basic email format check
+    //     if (!formData.email || !formData.email.includes('@')) {
+    //         newErrors.email = "Please enter a valid email address.";
+    //     }
 
-        // OTP validation only when OTP field is shown
-        if (showOTPField && !/^\d{6}$/.test(formData.otp)) {
-            newErrors.otp = "OTP must be exactly 6 digits.";
-        }
+    //     // OTP validation only when OTP field is shown
+    //     if (showOTPField && !/^\d{6}$/.test(formData.otp)) {
+    //         newErrors.otp = "OTP must be exactly 6 digits.";
+    //     }
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+    //     setErrors(newErrors);
+    //     return Object.keys(newErrors).length === 0;
+    // };
 
-    const handleGetOTP = () => {
+    const handleGetOTP = async() => {
         // Validate form before showing OTP field (exclude OTP validation)
         let newErrors: Record<string, string> = {};
 
@@ -66,8 +66,8 @@ export default function SignupPage() {
             newErrors.name = "Name must be at least 2 characters.";
         }
 
-        if (!formData.dateOfBirth) {
-            newErrors.dateOfBirth = "Date of birth is required.";
+        if (!formData.dob) {
+            newErrors.dob = "Date of birth is required.";
         }
 
         if (!formData.email || !formData.email.includes('@')) {
@@ -75,41 +75,64 @@ export default function SignupPage() {
         }
 
         setErrors(newErrors);
+        console.log(formData);
 
         if (Object.keys(newErrors).length === 0) {
-            console.log('Getting OTP for:', formData);
-            setShowOTPField(true);
-        }
-    };
+      try {
+        const response = await fetch("http://localhost:3000/api/auth/request-otp-up", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
 
- const handleSignUp = async () => {
-  if (validateForm()) {
-    console.log("Signing up with:", formData);
+        const data = await response.json();
+
+        if (response.ok) {
+          alert(data.message || "OTP sent to your email");
+          setShowOTPField(true);
+        } else {
+          alert(data.message || "Failed to send OTP");
+        }
+      } catch (error) {
+        console.error("Error while requesting OTP:", error);
+        alert("Something went wrong. Please try again.");
+      }
+    }
+  };
+
+  // ✅ Verify OTP → signup → navigate to dashboard
+  const handleVerifyOTP = async () => {
+    if (!formData.otp || formData.otp.length !== 6) {
+      setErrors({ otp: "Please enter a valid 6-digit OTP." });
+      return;
+    }
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/request-otp-up", {
+      const response = await fetch("http://localhost:3000/api/auth/verify-otp", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, otp: formData.otp }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert(data.message); // e.g., "OTP sent to johndoe@example.com"
-        // Show OTP input field
-        setShowOTPField(true);
+        alert("OTP verified successfully ✅");
+
+        // Save JWT for auth
+        localStorage.setItem("token", data.token);
+        
+        // Navigate to dashboard
+        navigate("/dashboard");
       } else {
-        alert(data.message || "Signup failed");
+        alert(data.message || "OTP verification failed");
       }
     } catch (error) {
-      console.error("Error during signup:", error);
+      console.error("Error verifying OTP:", error);
       alert("Something went wrong. Please try again.");
     }
-  }
-};
+  };
+
 
 
     const toggleShowOTP = () => {
@@ -181,12 +204,12 @@ export default function SignupPage() {
                             <TextField
                                 fullWidth
                                 label="Date of Birth"
-                                name="dateOfBirth"
+                                name="dob"
                                 type="date"
-                                value={formData.dateOfBirth}
+                                value={formData.dob}
                                 onChange={handleInputChange}
-                                error={!!errors.dateOfBirth}
-                                helperText={errors.dateOfBirth}
+                                error={!!errors.dob}
+                                helperText={errors.dob}
                                 variant="outlined"
                                 InputLabelProps={{ shrink: true }}
                                 InputProps={{
@@ -257,7 +280,7 @@ export default function SignupPage() {
                         <Button
                             fullWidth
                             variant="contained"
-                            onClick={showOTPField ? handleSignUp : handleGetOTP}
+                            onClick={showOTPField ? handleVerifyOTP : handleGetOTP}
                             sx={{
                                 mt: 4,
                                 backgroundColor: '#3b82f6',

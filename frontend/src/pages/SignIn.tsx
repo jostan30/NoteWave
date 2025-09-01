@@ -2,17 +2,24 @@ import React, { useState } from 'react';
 import { TextField, Button, Typography, Box, IconButton, InputAdornment, Checkbox, FormControlLabel } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../component/AuthContext'; // Import from AuthContext
+
+interface FormData {
+    email: string;
+    otp: string;
+}
 
 export default function SignInPage() {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         email: '',
         otp: ''
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [showOTPField, setShowOTPField] = useState(false);
-    const [showOTP, setShowOTP] = useState(false);
-    const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+    const [showOTPField, setShowOTPField] = useState<boolean>(false);
+    const [showOTP, setShowOTP] = useState<boolean>(false);
+    const [keepLoggedIn, setKeepLoggedIn] = useState<boolean>(false);
     const navigate = useNavigate();
+    const { login } = useAuth(); // Use login from AuthContext
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -30,24 +37,8 @@ export default function SignInPage() {
         }
     };
 
-    const validateForm = () => {
-        let newErrors: Record<string, string> = {};
 
-        // Email: basic email format check
-        if (!formData.email || !formData.email.includes('@')) {
-            newErrors.email = "Please enter a valid email address.";
-        }
-
-        // OTP validation only when OTP field is shown
-        if (showOTPField && !/^\d{6}$/.test(formData.otp)) {
-            newErrors.otp = "OTP must be exactly 6 digits.";
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleGetOTP = () => {
+    const handleGetOTP = async () => {
         // Validate email before showing OTP field
         let newErrors: Record<string, string> = {};
 
@@ -58,25 +49,90 @@ export default function SignInPage() {
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            console.log('Getting OTP for:', formData);
-            setShowOTPField(true);
+            try {
+                const response = await fetch("http://localhost:3000/api/auth/request-otp-in", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: formData.email }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message || "OTP sent to your email");
+                    setShowOTPField(true);
+                } else {
+                    alert(data.message || "Failed to send OTP");
+                }
+            } catch (error) {
+                console.error("Error while requesting OTP:", error);
+                alert("Something went wrong. Please try again.");
+            }
         }
     };
 
-    const handleSignIn = () => {
-        if (validateForm()) {
-            console.log('Signing in with:', formData, 'Keep logged in:', keepLoggedIn);
-            // Handle final signin logic here
+    const handleVerifyOTP = async () => {
+        let newErrors: Record<string, string> = {};
+
+        if (!formData.email || !formData.email.includes('@')) {
+            newErrors.email = "Please enter a valid email address.";
+        }
+
+        if (!formData.otp || formData.otp.length !== 6) {
+            newErrors.otp = "Please enter a valid 6-digit OTP.";
+        }
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length === 0) {
+            try {
+                const response = await fetch("http://localhost:3000/api/auth/verify-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: formData.email, otp: formData.otp }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert("OTP verified successfully ✅");
+
+                    // Use AuthContext login function
+                    login(data.token);
+                    navigate("/dashboard");
+                } else {
+                    alert(data.message || "OTP verification failed");
+                }
+            } catch (error) {
+                console.error("Error verifying OTP:", error);
+                alert("Something went wrong. Please try again.");
+            }
         }
     };
 
-    const handleResendOTP = () => {
-        console.log('Resending OTP for:', formData.email);
-        // Handle resend OTP logic here
-        setFormData(prev => ({
-            ...prev,
-            otp: '' // Clear current OTP
-        }));
+    const handleResendOTP = async () => {
+        try {
+            const response = await fetch("http://localhost:3000/api/auth/request-otp-in", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: formData.email }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message || "OTP resent to your email");
+                setFormData(prev => ({
+                    ...prev,
+                    otp: '' // Clear current OTP
+                }));
+            } else {
+                alert(data.message || "Failed to resend OTP");
+            }
+        } catch (error) {
+            console.error("Error resending OTP:", error);
+            alert("Something went wrong. Please try again.");
+        }
     };
 
     const toggleShowOTP = () => {
@@ -158,7 +214,8 @@ export default function SignInPage() {
                                 }}
                             />
 
-                           
+                            {/* OTP Field - Only show when showOTPField is true */}
+                            {showOTPField && (
                                 <>
                                     <TextField
                                         fullWidth
@@ -184,10 +241,19 @@ export default function SignInPage() {
                                                 </InputAdornment>
                                             ),
                                         }}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                                        sx={{ 
+                                            '& .MuiOutlinedInput-root': { 
+                                                borderRadius: '8px',
+                                                '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                                            },
+                                            '& .MuiInputLabel-root': {
+                                                color:"#3b82f6",
+                                                '&.Mui-focused': { color: '#3b82f6' },
+                                            },
+                                        }}
                                     />
 
-                                    {/* Resend OTP Link */}
+                                    {/* Resend OTP Link - Only show when OTP field is visible */}
                                     <Box sx={{ textAlign: 'left', mb: 2 }}>
                                         <Button
                                             variant="text"
@@ -208,39 +274,41 @@ export default function SignInPage() {
                                             Resend OTP
                                         </Button>
                                     </Box>
-
-                                    {/* Keep me logged in checkbox */}
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                checked={keepLoggedIn}
-                                                onChange={(e) => setKeepLoggedIn(e.target.checked)}
-                                                sx={{
-                                                    color: '#3b82f6',
-                                                    '&.Mui-checked': {
-                                                        color: '#3b82f6',
-                                                    },
-                                                }}
-                                            />
-                                        }
-                                        label="Keep me logged in"
-                                        sx={{
-                                            '& .MuiFormControlLabel-label': {
-                                                fontSize: '14px',
-                                                color: '#374151',
-                                            },
-                                        }}
-                                    />
                                 </>
-                          
+                            )}
+
+                            {/* Keep me logged in checkbox - Only show when OTP field is visible */}
+                            {showOTPField && (
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={keepLoggedIn}
+                                            onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                                            sx={{
+                                                color: '#3b82f6',
+                                                '&.Mui-checked': {
+                                                    color: '#3b82f6',
+                                                },
+                                            }}
+                                        />
+                                    }
+                                    label="Keep me logged in"
+                                    sx={{
+                                        '& .MuiFormControlLabel-label': {
+                                            fontSize: '14px',
+                                            color: '#374151',
+                                        },
+                                    }}
+                                />
+                            )}
 
                         </Box>
 
-                        {/* Get OTP / Sign In Button */}
+                        {/* Send OTP / Sign In Button */}
                         <Button
                             fullWidth
                             variant="contained"
-                            onClick={showOTPField ? handleSignIn : handleGetOTP}
+                            onClick={showOTPField ? handleVerifyOTP : handleGetOTP}
                             sx={{
                                 mt: 4,
                                 backgroundColor: '#3b82f6',
@@ -251,11 +319,11 @@ export default function SignInPage() {
                                 '&:hover': {
                                     backgroundColor: '#2563eb',
                                 },
-                                width: '400px', // optional: set fixed width for the form
-                                maxWidth: '100%', // responsive
+                                width: '400px',
+                                maxWidth: '100%',
                             }}
                         >
-                            {showOTPField ? 'Sign in' : 'Get OTP'}
+                            {showOTPField ? 'Sign in' : 'Send OTP'}
                         </Button>
 
                         {/* Sign Up Link */}
@@ -265,7 +333,7 @@ export default function SignInPage() {
                             </Typography>
                             <Button
                                 variant="text"
-                                onClick={()=>navigate('/signup')}
+                                onClick={() => navigate('/signup')}
                                 sx={{
                                     color: '#3b82f6',
                                     textTransform: 'none',
