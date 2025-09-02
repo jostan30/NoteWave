@@ -308,13 +308,6 @@ export default function Dashboard() {
                       <Typography variant="h6" sx={{ fontWeight: 600, color: '#111827', mb: 0.5 }}>
                         {note.title}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                        Created {new Date(note.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </Typography>
                     </Box>
                     <IconButton
                       onClick={() => handleDeleteNote(note._id, note.title)}
