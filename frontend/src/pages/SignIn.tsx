@@ -3,6 +3,7 @@ import { TextField, Button, Typography, Box, IconButton, InputAdornment, Checkbo
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../component/AuthContext'; // Import from AuthContext
+import { useToast } from '../component/Toast';
 
 interface FormData {
     email: string;
@@ -20,6 +21,7 @@ export default function SignInPage() {
     const [keepLoggedIn, setKeepLoggedIn] = useState<boolean>(false);
     const navigate = useNavigate();
     const { login } = useAuth(); // Use login from AuthContext
+    const { showToast } = useToast();
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -59,14 +61,13 @@ export default function SignInPage() {
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(data.message || "OTP sent to your email");
+                    showToast(data.message || "OTP sent to your email", 'success');
                     setShowOTPField(true);
                 } else {
                     alert(data.message || "Failed to send OTP");
                 }
             } catch (error) {
-                console.error("Error while requesting OTP:", error);
-                alert("Something went wrong. Please try again.");
+                showToast("Something went wrong. Please try again.", 'error');
             }
         }
     };
@@ -95,17 +96,15 @@ export default function SignInPage() {
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert("OTP verified successfully ✅");
-
+                    showToast(data.message || "OTP verified successfully", 'success');
                     // Use AuthContext login function
                     login(data.token);
                     navigate("/dashboard");
                 } else {
-                    alert(data.message || "OTP verification failed");
+                    showToast(data.message || "OTP verification failed", 'error');
                 }
             } catch (error) {
-                console.error("Error verifying OTP:", error);
-                alert("Something went wrong. Please try again.");
+                showToast("Something went wrong. Please try again.", 'error');
             }
         }
     };
@@ -127,11 +126,10 @@ export default function SignInPage() {
                     otp: '' // Clear current OTP
                 }));
             } else {
-                alert(data.message || "Failed to resend OTP");
+                showToast(data.message || "Failed to resend OTP" , 'error');
             }
         } catch (error) {
-            console.error("Error resending OTP:", error);
-            alert("Something went wrong. Please try again.");
+            showToast("Something went wrong. Please try again." , 'error');;
         }
     };
 

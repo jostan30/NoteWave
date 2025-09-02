@@ -2,10 +2,12 @@ import { useMemo } from "react";
 import {jwtDecode }from "jwt-decode";
 
 interface DecodedToken {
+  id:string;
   exp: number;
   name: string;
   email: string;
   dob: string;
+  iat?: number;
 }
 
 export function useAuth() {

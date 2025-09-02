@@ -13,6 +13,7 @@ interface DecodedToken {
 interface AuthContextType {
   isLoggedIn: boolean;
   user: DecodedToken | null;
+  token: string | null;
   login: (token: string) => void;
   logout: () => void;
 }
@@ -37,7 +38,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const authValue = React.useMemo(() => {
-    if (!token) return { isLoggedIn: false, user: null, login, logout };
+    if (!token) return { isLoggedIn: false, user: null, token: null, login, logout };
 
     try {
       const decoded: DecodedToken = jwtDecode(token);
@@ -46,15 +47,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (decoded.exp < currentTime) {
         localStorage.removeItem("token");
         setToken(null);
-        return { isLoggedIn: false, user: null, login, logout };
+        return { isLoggedIn: false, user: null, token: null, login, logout };
       }
 
-      return { isLoggedIn: true, user: decoded, login, logout };
+      return { isLoggedIn: true, user: decoded, token, login, logout };
     } catch (error) {
       console.error("Invalid token:", error);
       localStorage.removeItem("token");
       setToken(null);
-      return { isLoggedIn: false, user: null, login, logout };
+      return { isLoggedIn: false, user: null, token: null, login, logout };
     }
   }, [token]);
 

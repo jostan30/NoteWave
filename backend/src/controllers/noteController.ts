@@ -43,3 +43,18 @@ export const deleteNote = async (req: AuthRequest, res: any) => {
     res.status(500).json({ message: "Server error", error });
   }             
 };
+
+
+export const getNotes = async (req: AuthRequest, res: any) => {
+  try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+  
+      const notes = await Note.find({ userId: req.user.id });
+      res.status(200).json(notes);
+    } catch (error) {
+      res.status(500).json({ message: "Server error", error });
+    }     
+};

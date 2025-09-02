@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Button, Typography, Box, IconButton, InputAdornment } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../component/Toast';
 
 export default function SignupPage() {
     const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export default function SignupPage() {
     const [showOTPField, setShowOTPField] = useState(false);
     const [showOTP, setShowOTP] = useState(false);
     const navigate = useNavigate();
+    const {showToast} = useToast();
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -88,14 +90,13 @@ export default function SignupPage() {
         const data = await response.json();
 
         if (response.ok) {
-          alert(data.message || "OTP sent to your email");
+          showToast(data.message || "OTP sent to your email", 'success');
           setShowOTPField(true);
         } else {
           alert(data.message || "Failed to send OTP");
         }
       } catch (error) {
-        console.error("Error while requesting OTP:", error);
-        alert("Something went wrong. Please try again.");
+        showToast("Something went wrong. Please try again.",'error');
       }
     }
   };
@@ -117,7 +118,7 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("OTP verified successfully ✅");
+        showToast("OTP verified successfully" ,'success');
 
         // Save JWT for auth
         localStorage.setItem("token", data.token);
@@ -125,11 +126,10 @@ export default function SignupPage() {
         // Navigate to dashboard
         navigate("/dashboard");
       } else {
-        alert(data.message || "OTP verification failed");
+        showToast(data.message || "OTP verification failed" ,'error');
       }
     } catch (error) {
-      console.error("Error verifying OTP:", error);
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again." ,'error');
     }
   };
 

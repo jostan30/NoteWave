@@ -61,6 +61,7 @@ export const verifyOtpController = async (req: Request, res: Response) => {
 
     // JWT payload
     const payload = {
+      id: user._id,
       name: user.name,
       email: user.email,
       dob: user.dob,
