@@ -26,6 +26,7 @@ export const authenticate = (
 
     // attach decoded payload to req.user
     req.user = decoded;
+    console.log("Authenticated user:", req.user);
 
     next();
   } catch (error) {
