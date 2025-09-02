@@ -3,6 +3,7 @@ import { TextField, Button, Typography, Box, IconButton, InputAdornment } from '
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../component/Toast';
+import { useAuth } from '../component/AuthContext';
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
@@ -19,6 +20,7 @@ export default function SignupPage() {
     const [showOTP, setShowOTP] = useState(false);
     const navigate = useNavigate();
     const {showToast} = useToast();
+    const { login } = useAuth();
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -36,32 +38,6 @@ export default function SignupPage() {
         }
     };
 
-    // const validateForm = () => {
-    //     let newErrors: Record<string, string> = {};
-
-    //     // Name: at least 2 characters
-    //     if (formData.name.trim().length < 2) {
-    //         newErrors.name = "Name must be at least 2 characters.";
-    //     }
-
-    //     // DOB: must be a valid date
-    //     if (!formData.dateOfBirth) {
-    //         newErrors.dateOfBirth = "Date of birth is required.";
-    //     }
-
-    //     // Email: basic email format check
-    //     if (!formData.email || !formData.email.includes('@')) {
-    //         newErrors.email = "Please enter a valid email address.";
-    //     }
-
-    //     // OTP validation only when OTP field is shown
-    //     if (showOTPField && !/^\d{6}$/.test(formData.otp)) {
-    //         newErrors.otp = "OTP must be exactly 6 digits.";
-    //     }
-
-    //     setErrors(newErrors);
-    //     return Object.keys(newErrors).length === 0;
-    // };
 
     const handleGetOTP = async() => {
         // Validate form before showing OTP field (exclude OTP validation)
@@ -124,8 +100,7 @@ export default function SignupPage() {
         showToast("OTP verified successfully" ,'success');
 
         // Save JWT for auth
-        localStorage.setItem("token", data.token);
-        
+        login(data.token);
         // Navigate to dashboard
         navigate("/dashboard");
       } else {
