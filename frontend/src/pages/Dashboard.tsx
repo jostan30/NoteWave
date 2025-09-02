@@ -194,6 +194,7 @@ export default function Dashboard() {
             color: '#3b82f6',
             textTransform: 'none',
             fontSize: '14px',
+            textDecoration: 'underline',
             fontWeight: 500,
             '&:hover': {
               backgroundColor: 'rgba(59, 130, 246, 0.1)',

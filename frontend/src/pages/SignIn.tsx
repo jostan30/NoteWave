@@ -336,6 +336,7 @@ export default function SignInPage() {
                                 onClick={() => navigate('/signup')}
                                 sx={{
                                     color: '#3b82f6',
+                                    textDecoration: 'underline',
                                     textTransform: 'none',
                                     fontSize: '14px',
                                     fontWeight: 500,
@@ -343,7 +344,6 @@ export default function SignInPage() {
                                     p: 0,
                                     '&:hover': {
                                         backgroundColor: 'transparent',
-                                        textDecoration: 'underline',
                                     },
                                 }}
                             >

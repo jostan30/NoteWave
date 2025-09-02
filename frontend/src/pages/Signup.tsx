@@ -313,12 +313,12 @@ export default function SignupPage() {
                                     color: '#3b82f6',
                                     textTransform: 'none',
                                     fontSize: '14px',
+                                    textDecoration: 'underline',
                                     fontWeight: 500,
                                     minWidth: 'auto',
                                     p: 0,
                                     '&:hover': {
-                                        backgroundColor: 'transparent',
-                                        textDecoration: 'underline',
+                                        backgroundColor: 'transparent',                
                                     },
                                 }}
                             >
