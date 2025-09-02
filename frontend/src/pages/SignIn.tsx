@@ -10,6 +10,8 @@ interface FormData {
     otp: string;
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
 export default function SignInPage() {
     const [formData, setFormData] = useState<FormData>({
         email: '',
@@ -52,7 +54,7 @@ export default function SignInPage() {
 
         if (Object.keys(newErrors).length === 0) {
             try {
-                const response = await fetch("http://localhost:3000/api/auth/request-otp-in", {
+                const response = await fetch(`${BACKEND_URL}/api/auth/request-otp-in`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email: formData.email }),
@@ -87,7 +89,7 @@ export default function SignInPage() {
 
         if (Object.keys(newErrors).length === 0) {
             try {
-                const response = await fetch("http://localhost:3000/api/auth/verify-otp", {
+                const response = await fetch(`${BACKEND_URL}/api/auth/verify-otp`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email: formData.email, otp: formData.otp }),
@@ -111,7 +113,7 @@ export default function SignInPage() {
 
     const handleResendOTP = async () => {
         try {
-            const response = await fetch("http://localhost:3000/api/auth/request-otp-in", {
+            const response = await fetch(`${BACKEND_URL}/api/auth/request-otp-in`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: formData.email }),

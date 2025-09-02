@@ -4,6 +4,9 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../component/Toast';
 
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
 export default function SignupPage() {
     const [formData, setFormData] = useState({
         name: '',
@@ -81,7 +84,7 @@ export default function SignupPage() {
 
         if (Object.keys(newErrors).length === 0) {
       try {
-        const response = await fetch("http://localhost:3000/api/auth/request-otp-up", {
+        const response = await fetch(`${BACKEND_URL}/api/auth/request-otp-up`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
@@ -109,7 +112,7 @@ export default function SignupPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/verify-otp", {
+      const response = await fetch(`${BACKEND_URL}/api/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, otp: formData.otp }),

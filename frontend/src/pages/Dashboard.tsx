@@ -27,6 +27,9 @@ interface Note {
   updatedAt: string;
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout, token } = useAuth();
@@ -42,7 +45,7 @@ export default function Dashboard() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:3000/api/notes", {
+      const response = await fetch(`${BACKEND_URL}/api/notes`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +101,7 @@ export default function Dashboard() {
     try {
       setCreating(true);
 
-      const response = await fetch("http://localhost:3000/api/notes", {
+      const response = await fetch(`${BACKEND_URL}/api/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,7 +131,7 @@ export default function Dashboard() {
 
   const handleDeleteNote = async (noteId: string, noteTitle: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/notes/${noteId}`, {
+      const response = await fetch(`${BACKEND_URL}/api/notes/${noteId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
