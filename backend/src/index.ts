@@ -8,12 +8,14 @@ import noteRoutes from "./routes/noteRoutes";
 dotenv.config();
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: "http://localhost:5173", // your frontend URL (Vite default port)
+  origin: FRONTEND_URL,
   credentials: true
 }));
 
